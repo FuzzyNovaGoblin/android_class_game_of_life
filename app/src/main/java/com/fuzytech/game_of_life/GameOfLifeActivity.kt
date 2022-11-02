@@ -7,6 +7,8 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.core.view.size
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fuzytech.game_of_life.databinding.ActivityGameOfLifeBinding
 
@@ -16,8 +18,8 @@ class GameOfLifeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGameOfLifeBinding.inflate(layoutInflater)
-        game = GameOfLife(3)
-
+        game = GameOfLife(7)
+        binding.recycler.layoutManager = GridLayoutManager(this, game.size)
         binding.recycler.adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
 
         setContentView(binding.root)
@@ -34,6 +36,7 @@ class GameOfLifeActivity : AppCompatActivity() {
 
             frame.minimumHeight = parent.width/game.size
             frame.minimumWidth = parent.width/game.size
+
             return GameOfLifeViewHolder(frame)
         }
 
