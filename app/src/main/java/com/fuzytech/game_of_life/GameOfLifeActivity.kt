@@ -1,31 +1,46 @@
 package com.fuzytech.game_of_life
 
-import android.content.Context
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.fuzytech.game_of_life.databinding.ActivityGameOfLifeBinding
 
 class GameOfLifeActivity : AppCompatActivity() {
+    lateinit var binding: ActivityGameOfLifeBinding
+    lateinit var game: GameOfLife
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_game_of_life)
+        binding = ActivityGameOfLifeBinding.inflate(layoutInflater)
+        game = GameOfLife(3)
+
+        binding.recycler.adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
+
+        setContentView(binding.root)
     }
 
-    class GameOfLifeViewHolder(val item: FrameLayout): RecyclerView.ViewHolder(item) {}
 
-    class GameOfLifeAdapter(val context: Context, val converter: (Int) -> Pair<Int, Int>, val game: GameOfLife): RecyclerView.Adapter<GameOfLifeViewHolder>() {
+    class GameOfLifeAdapter(val converter: (Int, Int) -> Pair<Int, Int>, val game: GameOfLife): RecyclerView.Adapter<GameOfLifeAdapter.GameOfLifeViewHolder>() {
+
+        class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {}
+
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameOfLifeViewHolder {
-            val layout = FrameLayout(context)
-            layout.setBackgroundColor(Int.MAX_VALUE)
-            return GameOfLifeViewHolder(layout)
+            val frame = FrameLayout(parent.context)
+
+            frame.minimumHeight = parent.width/game.size
+            frame.minimumWidth = parent.width/game.size
+            return GameOfLifeViewHolder(frame)
         }
 
         override fun onBindViewHolder(holder: GameOfLifeViewHolder, position: Int) {
-            val coords = converter(position)
+            val coords = converter(position, game.size)
             val alive = game.isAlive(coords.first, coords.second)
-            holder.item.setBackgroundColor(if (alive) 0 else Int.MAX_VALUE)
+            holder.frame.setBackgroundColor(if (alive) Color.GREEN else Color.GRAY)
         }
 
         override fun getItemCount() = game.cellCount()
