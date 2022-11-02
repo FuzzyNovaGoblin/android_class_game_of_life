@@ -18,4 +18,9 @@ class GameOfLife(val size: Int) {
         }
     }
 
+    fun update(onDone: ()->Unit){
+        click(Pair((Math.random() * size).toInt(), (Math.random() * size).toInt()))
+        onDone()
+    }
+
 }
