@@ -28,14 +28,17 @@ class GameOfLifeActivity : AppCompatActivity() {
         binding.recycler.layoutManager = GridLayoutManager(this, game.size)
         adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
         binding.recycler.adapter = adapter
-
         setContentView(binding.root)
+
+        binding.pause.setOnClickListener {
+//            game.togglePause()
+        }
     }
 
     override fun onResume() {
         handler.postDelayed(Runnable {
             handler.postDelayed(runnable!!, delay.toLong())
-            game.update { adapter.notifyDataSetChanged() }
+            game.update { adapter.notifyItemChanged(it) }
         }.also { runnable = it }, delay.toLong())
         super.onResume()
     }
@@ -49,12 +52,12 @@ class GameOfLifeActivity : AppCompatActivity() {
 
         class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {
 
-            fun setColor(color: Color, duration: Long) {
-                val oldColor = (frame.background as ColorDrawable).color
-                val animator = ValueAnimator.ofObject(ArgbEvaluator(), oldColor, color.toArgb())
+            fun setColor(color: Int, duration: Long) {
+                val oldColor = (frame.background as ColorDrawable?)?.color ?: Color.GRAY
+                val animator = ValueAnimator.ofObject(ArgbEvaluator(), oldColor, color)
                 animator.duration = duration
                 animator.addUpdateListener {
-                    frame.setBackgroundColor(it.animatedValue as Int)
+                    frame.setBackgroundColor(it.animatedValue as Int? ?: Color.GRAY)
                 }
                 animator.start()
             }
@@ -63,7 +66,6 @@ class GameOfLifeActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameOfLifeViewHolder {
             val frame = FrameLayout(parent.context)
-
             frame.minimumHeight = parent.width/game.size
             frame.minimumWidth = parent.width/game.size
 
@@ -73,10 +75,11 @@ class GameOfLifeActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: GameOfLifeViewHolder, position: Int) {
             val coords = converter(position, game.size)
             val alive = game.isAlive(coords.first, coords.second)
-            holder.frame.setBackgroundColor(if (alive) Color.GREEN else Color.GRAY)
+            holder.setColor(if (alive) Color.GREEN else Color.GRAY, 250)
             holder.frame.setOnClickListener{
                 game.click(coords)
-                this.notifyDataSetChanged()}
+                notifyItemChanged(position)
+            }
         }
 
         override fun getItemCount() = game.cellCount()
