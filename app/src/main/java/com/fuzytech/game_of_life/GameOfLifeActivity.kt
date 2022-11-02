@@ -44,6 +44,9 @@ class GameOfLifeActivity : AppCompatActivity() {
             val coords = converter(position, game.size)
             val alive = game.isAlive(coords.first, coords.second)
             holder.frame.setBackgroundColor(if (alive) Color.GREEN else Color.GRAY)
+            holder.frame.setOnClickListener{
+                game.click(coords)
+                this.notifyDataSetChanged()}
         }
 
         override fun getItemCount() = game.cellCount()
