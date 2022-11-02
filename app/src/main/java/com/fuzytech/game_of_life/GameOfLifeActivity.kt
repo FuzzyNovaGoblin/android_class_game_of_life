@@ -1,6 +1,9 @@
 package com.fuzytech.game_of_life
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.view.ViewGroup
@@ -44,8 +47,19 @@ class GameOfLifeActivity : AppCompatActivity() {
 
     class GameOfLifeAdapter(val converter: (Int, Int) -> Pair<Int, Int>, val game: GameOfLife): RecyclerView.Adapter<GameOfLifeAdapter.GameOfLifeViewHolder>() {
 
-        class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {}
+        class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {
 
+            fun setColor(color: Color, duration: Long) {
+                val oldColor = (frame.background as ColorDrawable).color
+                val animator = ValueAnimator.ofObject(ArgbEvaluator(), oldColor, color.toArgb())
+                animator.duration = duration
+                animator.addUpdateListener {
+                    frame.setBackgroundColor(it.animatedValue as Int)
+                }
+                animator.start()
+            }
+
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameOfLifeViewHolder {
             val frame = FrameLayout(parent.context)
@@ -67,4 +81,5 @@ class GameOfLifeActivity : AppCompatActivity() {
 
         override fun getItemCount() = game.cellCount()
     }
+
 }
