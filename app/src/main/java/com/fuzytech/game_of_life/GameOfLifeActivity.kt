@@ -20,17 +20,23 @@ class GameOfLifeActivity : AppCompatActivity() {
     var handler: Handler = Handler()
     var runnable: Runnable? = null
     var delay = 500
+    var size = 30
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGameOfLifeBinding.inflate(layoutInflater)
-        game = GameOfLife(20)
+        game = GameOfLife(size)
         binding.recycler.layoutManager = GridLayoutManager(this, game.size)
         adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
         binding.recycler.adapter = adapter
 
         binding.pause.setOnClickListener {
             game.togglePause()
+        }
+        binding.reset.setOnClickListener {
+            game.cells.clear()
+            binding.recycler.adapter = adapter
+            game.pause = true
         }
         setContentView(binding.root)
     }
