@@ -47,6 +47,8 @@ class GameOfLife(val size: Int) {
         return neighbors.filter { cells.contains(it) }.size
     }
 
+    fun toIndex(coord: Pair<Int, Int>) = coord.first + coord.second * size
+
     fun click(coord: Pair<Int, Int>){
         if (cells.contains(coord)){
             cells.remove(coord)
@@ -57,13 +59,15 @@ class GameOfLife(val size: Int) {
 
     fun update(updateGrid: (Int)->Unit){
         if (pause){
+            cells.forEach {updateGrid(toIndex(it))}
             return
         }
         var toUpdate: HashSet<Pair<Int, Int>> = HashSet()
         var nextGenAdd: MutableList<Pair<Int, Int>> = mutableListOf()
         var nextGenRemove: MutableList<Pair<Int, Int>> = mutableListOf()
-        for (p in cells.toArray()){
-            toUpdate.add(p as Pair<Int, Int>)
+        for (p in cells){
+            nextGenAdd.add(p)
+            toUpdate.add(p)
             for(n in getAdjacent(p)){
                 toUpdate.add(n)
             }
@@ -86,12 +90,11 @@ class GameOfLife(val size: Int) {
         for (p in nextGenRemove){
             cells.remove(p)
         }
-
         for (p in nextGenRemove){
-            updateGrid(p.first + (p.second * size))
+            updateGrid(toIndex(p))
         }
         for (p in nextGenAdd){
-            updateGrid(p.first + (p.second * size))
+            updateGrid(toIndex(p))
         }
     }
 

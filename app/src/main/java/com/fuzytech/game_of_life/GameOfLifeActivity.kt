@@ -19,7 +19,7 @@ class GameOfLifeActivity : AppCompatActivity() {
     lateinit var adapter: GameOfLifeAdapter
     var handler: Handler = Handler()
     var runnable: Runnable? = null
-    var delay = 100
+    var delay = 500
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,14 +52,18 @@ class GameOfLifeActivity : AppCompatActivity() {
 
         class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {
 
-            fun setColor(color: Int, duration: Long) {
-                val oldColor = (frame.background as ColorDrawable?)?.color ?: Color.GRAY
+            fun setColor(oldColor: Int, color: Int, duration: Long) {
                 val animator = ValueAnimator.ofObject(ArgbEvaluator(), oldColor, color)
                 animator.duration = duration
                 animator.addUpdateListener {
                     frame.setBackgroundColor(it.animatedValue as Int? ?: Color.GRAY)
                 }
                 animator.start()
+            }
+
+            fun setColor(color: Int, duration: Long) {
+                val oldColor = (frame.background as ColorDrawable?)?.color ?: Color.GRAY
+                setColor(oldColor, color, duration)
             }
 
         }
@@ -75,7 +79,12 @@ class GameOfLifeActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: GameOfLifeViewHolder, position: Int) {
             val coords = converter(position, game.size)
             val alive = game.isAlive(coords.first, coords.second)
-            holder.setColor(if (alive) Color.GREEN else Color.GRAY, 250)
+            val duration = 250L
+            if (alive) {
+                holder.setColor(Color.GREEN, Color.parseColor("#90EE90"), duration)
+            } else {
+                holder.setColor(Color.GRAY, duration)
+            }
             holder.frame.setOnClickListener{
                 game.click(coords)
                 notifyItemChanged(position)
