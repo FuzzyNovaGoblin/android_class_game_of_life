@@ -57,9 +57,8 @@ class GameOfLife(val size: Int) {
         }
     }
 
-    fun update(updateGrid: (Int)->Unit){
+    fun update(updateGrid: (Int)->Unit) {
         if (pause){
-            cells.forEach {updateGrid(toIndex(it))}
             return
         }
         var toUpdate: HashSet<Pair<Int, Int>> = HashSet()

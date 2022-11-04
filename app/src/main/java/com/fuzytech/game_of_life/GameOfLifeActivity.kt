@@ -39,6 +39,7 @@ class GameOfLifeActivity : AppCompatActivity() {
         handler.postDelayed(Runnable {
             handler.postDelayed(runnable!!, delay.toLong())
             game.update { adapter.notifyItemChanged(it) }
+            game.cells.forEach { adapter.notifyItemChanged(game.toIndex(it)) }
         }.also { runnable = it }, delay.toLong())
         super.onResume()
     }
