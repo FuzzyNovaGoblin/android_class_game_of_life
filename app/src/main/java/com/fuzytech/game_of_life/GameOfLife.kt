@@ -1,10 +1,9 @@
 package com.fuzytech.game_of_life
 
-import android.util.Log
-
 class GameOfLife(val size: Int) {
 
     var cells: HashSet<Pair<Int, Int>> = HashSet()
+    var pause: Boolean = true
 
     fun cellCount() = size * size
 
@@ -24,6 +23,10 @@ class GameOfLife(val size: Int) {
         }
 
         return Pair(x%size, y%size)
+    }
+
+    fun togglePause(){
+        pause = !pause
     }
 
     fun getAdjacent(point:Pair<Int, Int>): List<Pair<Int, Int>>{
@@ -52,28 +55,44 @@ class GameOfLife(val size: Int) {
         }
     }
 
-    fun update(onDone: ()->Unit){
+    fun update(updateGrid: (Int)->Unit){
+        if (pause){
+            return
+        }
         var toUpdate: HashSet<Pair<Int, Int>> = HashSet()
+        var nextGenAdd: MutableList<Pair<Int, Int>> = mutableListOf()
+        var nextGenRemove: MutableList<Pair<Int, Int>> = mutableListOf()
         for (p in cells.toArray()){
-//            val adj = getAdjacent(p as Pair<Int, Int>)
             toUpdate.add(p as Pair<Int, Int>)
             for(n in getAdjacent(p)){
                 toUpdate.add(n)
             }
         }
         for (p in toUpdate){
-            if(aliveNeighbors(p) < 2){
-                cells.remove(p)
-            }
-            else if(aliveNeighbors(p) > 3){
-                cells.remove(p)
-            }
-            else if(aliveNeighbors(p) == 3){
-                cells.add(p)
+            if(cells.contains(p)){
+                val n = aliveNeighbors(p)
+                if(n < 2 || n > 3 ){
+                    nextGenRemove.add(p)
+                }
+            }else{
+                if(aliveNeighbors(p) == 3){
+                    nextGenAdd.add(p)
+                }
             }
         }
-//        click(Pair((Math.random() * size).toInt(), (Math.random() * size).toInt()))
-        onDone()
+        for (p in nextGenAdd){
+            cells.add(p)
+        }
+        for (p in nextGenRemove){
+            cells.remove(p)
+        }
+
+        for (p in nextGenRemove){
+            updateGrid(p.first + (p.second * size))
+        }
+        for (p in nextGenAdd){
+            updateGrid(p.first + (p.second * size))
+        }
     }
 
 }
