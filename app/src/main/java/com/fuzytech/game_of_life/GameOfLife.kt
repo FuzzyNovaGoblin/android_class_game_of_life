@@ -1,8 +1,13 @@
 package com.fuzytech.game_of_life
 
 import java.io.Serializable
+import kotlin.streams.asSequence
 
 class GameOfLife(val size: Int): Serializable {
+
+    constructor(string: String) : this(string.takeWhile {it != '\n'}.toInt()) {
+        cells = string.split("\n").stream().skip(1).map {it.split(",")}.map {Pair(it[0].toInt(), it[1].toInt())}.asSequence().toHashSet()
+    }
 
     var cells: HashSet<Pair<Int, Int>> = HashSet()
     var pause: Boolean = true
@@ -98,5 +103,7 @@ class GameOfLife(val size: Int): Serializable {
             updateGrid(toIndex(p))
         }
     }
+
+    override fun toString() = size.toString() + "\n" + cells.map {"${it.first},${it.second}"}.joinToString("\n")
 
 }

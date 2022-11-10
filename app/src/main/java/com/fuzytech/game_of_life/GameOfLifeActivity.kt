@@ -13,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fuzytech.game_of_life.databinding.ActivityGameOfLifeBinding
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
+import java.util.Base64
 
 class GameOfLifeActivity : AppCompatActivity() {
     lateinit var binding: ActivityGameOfLifeBinding
@@ -27,6 +30,11 @@ class GameOfLifeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityGameOfLifeBinding.inflate(layoutInflater)
         game = intent.extras?.getSerializable("board") as GameOfLife? ?: GameOfLife(size)
+        setBoard(game)
+    }
+
+    private fun setBoard(board: GameOfLife) {
+        game = board
         binding.recycler.layoutManager = GridLayoutManager(this, game.size)
         adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
         binding.recycler.adapter = adapter
@@ -44,6 +52,26 @@ class GameOfLifeActivity : AppCompatActivity() {
             val intent = Intent(this@GameOfLifeActivity, GameOfLifeActivity::class.java)
             intent.putExtra("board", game)
             startActivity(intent)
+        }
+        binding.save.setOnClickListener {
+            DialogUtil.showDialog(this, "Filename") {
+                if (it.isEmpty()) {
+                    DialogUtil.showAlert(this, "Filename cannot be empty")
+                    return@showDialog
+                }
+                Files.write(dataDir.toPath().resolve(it), game.toString().toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+            }
+        }
+        binding.load.setOnClickListener {
+            DialogUtil.showDialog(this, "Filename") {
+                if (it.isEmpty() || !dataDir.resolve(it).exists()) {
+                    DialogUtil.showAlert(this, "Invalid file")
+                    return@showDialog
+                }
+                val str = String(Files.readAllBytes(dataDir.toPath().resolve(it)))
+                val game = GameOfLife(str)
+                setBoard(game)
+            }
         }
         setContentView(binding.root)
     }
