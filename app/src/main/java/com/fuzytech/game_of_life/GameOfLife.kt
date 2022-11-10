@@ -7,7 +7,8 @@ import kotlin.streams.asSequence
 
 class GameOfLife(val size: Int): Serializable {
 
-    constructor(string: String) : this(string.takeWhile {it != '\n'}.toInt()) {
+    constructor(string: String) : this(string.takeWhile {it != ','}.toInt()) {
+        string.takeWhile {it != '\n'}.split(",").also {aliveColor = it[1].toInt(); deadColor = it[2].toInt()}
         cells = string.split("\n").stream().skip(1).map {it.split(",")}.map {Pair(it[0].toInt(), it[1].toInt())}.asSequence().toHashSet()
     }
 
@@ -114,6 +115,6 @@ class GameOfLife(val size: Int): Serializable {
         }
     }
 
-    override fun toString() = size.toString() + "\n" + cells.map {"${it.first},${it.second}"}.joinToString("\n")
+    override fun toString() = listOf(size, aliveColor, deadColor).map {it.toString()}.joinToString(",") + "\n" + cells.map {"${it.first},${it.second}"}.joinToString("\n")
 
 }
