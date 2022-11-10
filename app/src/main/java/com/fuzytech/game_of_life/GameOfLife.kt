@@ -9,8 +9,10 @@ class GameOfLife(val size: Int): Serializable {
 
     constructor(string: String) : this(string.takeWhile {it != ','}.toInt()) {
         string.takeWhile {it != '\n'}.split(",").also {aliveColor = it[1].toInt(); deadColor = it[2].toInt()}
-        cells = string.split("\n").stream().skip(1).map {it.split(",")}.map {Pair(it[0].toInt(), it[1].toInt())}.asSequence().toHashSet()
+        cells = string.split("\n").drop(1).map {it.split(",")}.map {it[0].toInt() to it[1].toInt()}.toHashSet()
     }
+
+    override fun toString() = listOf(size, aliveColor, deadColor).map {it.toString()}.joinToString(",") + "\n" + cells.map {"${it.first},${it.second}"}.joinToString("\n")
 
     var cells: HashSet<Pair<Int, Int>> = HashSet()
     var pause: Boolean = true
@@ -114,7 +116,5 @@ class GameOfLife(val size: Int): Serializable {
             updateGrid(toIndex(p))
         }
     }
-
-    override fun toString() = listOf(size, aliveColor, deadColor).map {it.toString()}.joinToString(",") + "\n" + cells.map {"${it.first},${it.second}"}.joinToString("\n")
 
 }
