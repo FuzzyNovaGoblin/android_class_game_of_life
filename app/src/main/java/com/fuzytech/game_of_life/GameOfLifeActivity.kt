@@ -7,12 +7,15 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fuzytech.game_of_life.databinding.ActivityGameOfLifeBinding
+import com.skydoves.colorpickerview.ColorPickerDialog
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 import java.util.Base64
@@ -36,7 +39,7 @@ class GameOfLifeActivity : AppCompatActivity() {
     private fun setBoard(board: GameOfLife) {
         game = board
         binding.recycler.layoutManager = GridLayoutManager(this, game.size)
-        adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
+        adapter = GameOfLifeAdapter({ i: Int, size: Int -> Pair(i % size, i / size) }, game)
         binding.recycler.adapter = adapter
 
         binding.pause.setOnClickListener {
@@ -59,7 +62,12 @@ class GameOfLifeActivity : AppCompatActivity() {
                     DialogUtil.showAlert(this, "Filename cannot be empty")
                     return@showDialog
                 }
-                Files.write(dataDir.toPath().resolve(it), game.toString().toByteArray(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+                Files.write(
+                    dataDir.toPath().resolve(it),
+                    game.toString().toByteArray(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+                )
             }
         }
         binding.load.setOnClickListener {
@@ -73,6 +81,25 @@ class GameOfLifeActivity : AppCompatActivity() {
                 setBoard(game)
             }
         }
+
+        binding.pickcoloralive
+            .setOnClickListener {
+                ColorPickerDialog.Builder(this)
+                    .setTitle("Pick Color")
+                    .setPositiveButton("select",
+                        ColorEnvelopeListener { envelope, _ ->
+                            game.aliveColor = envelope.color
+                            game.deadColor = game.secondAliveColor().toArgb()
+                            adapter.notifyDataSetChanged()
+                        })
+                    .setNegativeButton(
+                        "cancel"
+                    ) { dialogInterface, _ -> dialogInterface.dismiss() }
+                    .attachBrightnessSlideBar(true)
+                    .setBottomSpace(12)
+                    .show()
+            }
+
         setContentView(binding.root)
     }
 
@@ -90,21 +117,23 @@ class GameOfLifeActivity : AppCompatActivity() {
         handler.removeCallbacks(runnable!!)
     }
 
-    class GameOfLifeAdapter(val converter: (Int, Int) -> Pair<Int, Int>, val game: GameOfLife): RecyclerView.Adapter<GameOfLifeAdapter.GameOfLifeViewHolder>() {
+    class GameOfLifeAdapter(val converter: (Int, Int) -> Pair<Int, Int>, val game: GameOfLife) :
+        RecyclerView.Adapter<GameOfLifeAdapter.GameOfLifeViewHolder>() {
 
-        class GameOfLifeViewHolder(val frame: FrameLayout): RecyclerView.ViewHolder(frame) {
+        class GameOfLifeViewHolder(val frame: FrameLayout, val game: GameOfLife) :
+            RecyclerView.ViewHolder(frame) {
 
             fun setColor(oldColor: Int, color: Int, duration: Long) {
                 val animator = ValueAnimator.ofObject(ArgbEvaluator(), oldColor, color)
                 animator.duration = duration
                 animator.addUpdateListener {
-                    frame.setBackgroundColor(it.animatedValue as Int? ?: Color.GRAY)
+                    frame.setBackgroundColor(it.animatedValue as Int? ?: game.deadColor)
                 }
                 animator.start()
             }
 
             fun setColor(color: Int, duration: Long) {
-                val oldColor = (frame.background as ColorDrawable?)?.color ?: Color.GRAY
+                val oldColor = (frame.background as ColorDrawable?)?.color ?: game.deadColor
                 setColor(oldColor, color, duration)
             }
 
@@ -112,10 +141,10 @@ class GameOfLifeActivity : AppCompatActivity() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameOfLifeViewHolder {
             val frame = FrameLayout(parent.context)
-            frame.minimumHeight = parent.width/game.size
-            frame.minimumWidth = parent.width/game.size
+            frame.minimumHeight = parent.width / game.size
+            frame.minimumWidth = parent.width / game.size
 
-            return GameOfLifeViewHolder(frame)
+            return GameOfLifeViewHolder(frame, game)
         }
 
         override fun onBindViewHolder(holder: GameOfLifeViewHolder, position: Int) {
@@ -123,11 +152,11 @@ class GameOfLifeActivity : AppCompatActivity() {
             val alive = game.isAlive(coords.first, coords.second)
             val duration = 250L
             if (alive) {
-                holder.setColor(Color.GREEN, Color.parseColor("#90EE90"), duration)
+                holder.setColor(game.aliveColor, game.aliveColor, duration)
             } else {
-                holder.setColor(Color.GRAY, duration)
+                holder.setColor(game.deadColor, duration)
             }
-            holder.frame.setOnClickListener{
+            holder.frame.setOnClickListener {
                 game.click(coords)
                 notifyItemChanged(position)
             }

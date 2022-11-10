@@ -1,5 +1,7 @@
 package com.fuzytech.game_of_life
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import java.io.Serializable
 import kotlin.streams.asSequence
 
@@ -11,6 +13,14 @@ class GameOfLife(val size: Int): Serializable {
 
     var cells: HashSet<Pair<Int, Int>> = HashSet()
     var pause: Boolean = true
+    var aliveColor = Color.GREEN
+    var deadColor =  Color.GRAY
+
+
+    fun secondAliveColor(): Color{
+        val ogColor = Color.valueOf(aliveColor)
+        return Color.valueOf(255 - ogColor.red(), 255 - ogColor.blue(), 255 - ogColor.green() )
+    }
 
     fun cellCount() = size * size
 
