@@ -2,6 +2,7 @@ package com.fuzytech.game_of_life
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -25,7 +26,7 @@ class GameOfLifeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGameOfLifeBinding.inflate(layoutInflater)
-        game = GameOfLife(size)
+        game = intent.extras?.getSerializable("board") as GameOfLife? ?: GameOfLife(size)
         binding.recycler.layoutManager = GridLayoutManager(this, game.size)
         adapter = GameOfLifeAdapter({i:Int, size: Int -> Pair(i%size, i/size)}, game)
         binding.recycler.adapter = adapter
@@ -37,6 +38,12 @@ class GameOfLifeActivity : AppCompatActivity() {
             game.cells.clear()
             binding.recycler.adapter = adapter
             game.pause = true
+        }
+        binding.clone.setOnClickListener {
+            game.pause = true
+            val intent = Intent(this@GameOfLifeActivity, GameOfLifeActivity::class.java)
+            intent.putExtra("board", game)
+            startActivity(intent)
         }
         setContentView(binding.root)
     }

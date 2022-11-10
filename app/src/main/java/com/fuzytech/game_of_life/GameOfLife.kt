@@ -1,6 +1,8 @@
 package com.fuzytech.game_of_life
 
-class GameOfLife(val size: Int) {
+import java.io.Serializable
+
+class GameOfLife(val size: Int): Serializable {
 
     var cells: HashSet<Pair<Int, Int>> = HashSet()
     var pause: Boolean = true
